@@ -41,7 +41,8 @@ jobs:
       - name: Create AppTrust Application Version
         run: |
           jf apptrust version-create ${{ env.APP_KEY }} ${{ env.VERSION }} \
-            --tag="dev"
+            --tag="dev" \
+            --source-type-builds="name=${{ github.workflow }},id=${{ github.run_number }}"
 
       # Step 2.3: Sign and attach the CycloneDX SBOM as Evidence to the project space
       - name: Attach SBOM Evidence to Project
