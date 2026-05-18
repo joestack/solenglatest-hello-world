@@ -1,0 +1,56 @@
+name: JFrog AppTrust Scoped Governance Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  apptrust-joern-scope:
+    runs-on: ubuntu-latest
+  
+    # ADD THIS BLOCK TO ENABLE OIDC
+    permissions:
+      id-token: write    # Required to request the JWT token for JFrog OIDC
+      contents: read     # Required to checkout code when overriding permissions
+
+    env:
+      PROJECT_KEY: "joern"                # Target JFrog Project
+      APP_KEY: "solenglatest-hello-world"        # Application identifier inside the project
+      VERSION: "2.0.${{ github.run_number }}"
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v4
+        env:
+            JF_URL: https://solenglatest.jfrog.io 
+        with:
+            oidc-provider-name: joern-github 
+
+      # Step 2.1: Build application and generate the physical CycloneDX file
+      - name: Build & Generate CycloneDX SBOM
+        run: |
+          mkdir -p output && echo "secure-binary" > output/app.bin
+          
+          echo "Generating CycloneDX SBOM..."
+          # Outputs a compliant CycloneDX format file
+          echo '{"bomFormat": "CycloneDX", "specVersion": "1.6", "components": []}' > output/sbom.json
+
+      # Step 2.2: Register the Application Version inside the 'joern' Project
+      - name: Create AppTrust Application Version
+        run: |
+          jf apptrust version-create ${{ env.APP_KEY }} ${{ env.VERSION }} \
+            --tag="dev" \
+            --source-type-builds="name=${{ github.workflow }},id=${{ github.run_number }}"
+
+      # Step 2.3: Sign and attach the CycloneDX SBOM as Evidence to the project space
+      - name: Attach SBOM Evidence to Project
+        run: |
+          jf apptrust evidence-create \
+            --project="${{ env.PROJECT_KEY }}" \
+            --app-key="${{ env.APP_KEY }}" \
+            --version="${{ env.VERSION }}" \
+            --file="output/sbom.json" \
+            --predicate-type="https://jfrog.com/evidence/cyclonedx/sbom/v1.6" \
+            --slug="cyclonedx-sbom"

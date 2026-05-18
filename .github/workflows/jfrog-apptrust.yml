@@ -8,43 +8,59 @@ jobs:
   apptrust-joern-scope:
     runs-on: ubuntu-latest
   
-    # ADD THIS BLOCK TO ENABLE OIDC
     permissions:
-      id-token: write    # Required to request the JWT token for JFrog OIDC
-      contents: read     # Required to checkout code when overriding permissions
+      id-token: write    
+      contents: read     
 
     env:
-      PROJECT_KEY: "joern"                # Target JFrog Project
-      APP_KEY: "solenglatest-hello-world"        # Application identifier inside the project
+      PROJECT_KEY: "joern"                
+      APP_KEY: "solenglatest-hello-world" 
       VERSION: "2.0.${{ github.run_number }}"
+      JF_URL: https://solenglatest.jfrog.io
+      # Explicitly define the build name to match your source parameter
+      BUILD_NAME: "solenglatest-hello-world-build" 
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v4
-        env:
-            JF_URL: https://solenglatest.jfrog.io 
         with:
             oidc-provider-name: joern-github 
+            version: 2.91.0
 
-      # Step 2.1: Build application and generate the physical CycloneDX file
+      # Step 1: Build application and generate the physical CycloneDX file
       - name: Build & Generate CycloneDX SBOM
         run: |
-          mkdir -p output && echo "secure-binary" > output/app.bin
+          mkdir -p output 
+          echo "secure-binary" > output/app.bin
           
           echo "Generating CycloneDX SBOM..."
-          # Outputs a compliant CycloneDX format file
           echo '{"bomFormat": "CycloneDX", "specVersion": "1.6", "components": []}' > output/sbom.json
 
-      # Step 2.2: Register the Application Version inside the 'joern' Project
+      # Step 2: Upload Application Binary to Artifactory & Publish Build Info
+      # (This creates the immutable ledger entry that AppTrust requires)
+      - name: Publish Build to JFrog
+        run: |
+          # Upload binary to a repository inside the 'joern' project
+          jf rt upload "output/app.bin" "joern-generic-dev-local/apps/" \
+            --build-name="${{ env.BUILD_NAME }}" \
+            --build-number="${{ github.run_number }}" \
+            --project="${{ env.PROJECT_KEY }}"
+          
+          # Publish the build info to the platform
+          jf build-publish "${{ env.BUILD_NAME }}" "${{ github.run_number }}" \
+            --project="${{ env.PROJECT_KEY }}"
+
+      # Step 3: Register the Application Version inside AppTrust
       - name: Create AppTrust Application Version
         run: |
           jf apptrust version-create ${{ env.APP_KEY }} ${{ env.VERSION }} \
             --tag="dev" \
-            --source-type-builds="name=${{ github.workflow }},id=${{ github.run_number }}"
+            --source-type-builds="name=${{ env.BUILD_NAME }},id=${{ github.run_number }}"
 
-      # Step 2.3: Sign and attach the CycloneDX SBOM as Evidence to the project space
+      # Step 4: Sign and attach the CycloneDX SBOM as Evidence
       - name: Attach SBOM Evidence to Project
         run: |
           jf apptrust evidence-create \
