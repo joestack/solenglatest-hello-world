@@ -7,10 +7,16 @@ on:
 jobs:
   apptrust-joern-scope:
     runs-on: ubuntu-latest
-    #env:
-      #PROJECT_KEY: "joern"                # Target JFrog Project
-      #APP_KEY: "solenglatest-hello-world"        # Application identifier inside the project
-      #VERSION: "2.0.${{ github.run_number }}"
+  
+    # ADD THIS BLOCK TO ENABLE OIDC
+    permissions:
+      id-token: write    # Required to request the JWT token for JFrog OIDC
+      contents: read     # Required to checkout code when overriding permissions
+
+    env:
+      PROJECT_KEY: "joern"                # Target JFrog Project
+      APP_KEY: "solenglatest-hello-world"        # Application identifier inside the project
+      VERSION: "2.0.${{ github.run_number }}"
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
