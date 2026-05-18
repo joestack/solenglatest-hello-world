@@ -14,7 +14,7 @@ jobs:
 
     env:
       PROJECT_KEY: "joern"                
-      APP_KEY: "solenglatest-hello-world" 
+      APP_KEY: "hello-world" 
       VERSION: "2.0.${{ github.run_number }}"
       JF_URL: https://solenglatest.jfrog.io
       BUILD_NAME: "solenglatest-hello-world-build" 
