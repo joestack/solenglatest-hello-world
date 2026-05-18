@@ -44,7 +44,7 @@ jobs:
       - name: Publish Build to JFrog
         run: |
           # Upload binary to a repository inside the 'joern' project
-          jf rt upload "output/app.bin" "joern-generic-dev-local/apps/" \
+          jf rt upload "output/app.bin" "joern-hello-world/apps/" \
             --build-name="${{ env.BUILD_NAME }}" \
             --build-number="${{ github.run_number }}" \
             --project="${{ env.PROJECT_KEY }}"
