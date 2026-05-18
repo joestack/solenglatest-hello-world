@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PROJECT_KEY: "joern"                # Target JFrog Project
-      APP_KEY: "joern-hello-world"        # Application identifier inside the project
+      APP_KEY: "solenglatest-hello-world"        # Application identifier inside the project
       VERSION: "2.0.${{ github.run_number }}"
     steps:
       - name: Checkout Code
