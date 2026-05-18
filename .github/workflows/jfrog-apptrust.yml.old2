@@ -13,9 +13,9 @@ jobs:
       contents: read     
 
     env:
-      #PROJECT_KEY: "joern"
-      JF_PROJECT: "joern"                
-      APP_KEY: "solenglatest-hello-world" 
+      PROJECT_KEY: "joern"
+      #JF_PROJECT: "joern"                
+      APP_KEY: "hello-world" 
       VERSION: "2.0.${{ github.run_number }}"
       JF_URL: https://solenglatest.jfrog.io
       # Explicitly define the build name to match your source parameter
