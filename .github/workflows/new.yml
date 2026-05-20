@@ -9,8 +9,17 @@ jobs:
     runs-on: ubuntu-latest
   
     permissions:
-      id-token: write    
-      contents: read     
+      actions: read           # for detecting the Github Actions environment
+      id-token: write         # for creating OIDC tokens for signing
+      packages: write         # for uploading attestations
+      contents: read          # read the contents permission
+      security-events: write  # for uploading code scanning
+      attestations: write     # Required for attestation
+
+
+    # permissions:
+    #   id-token: write    
+    #   contents: read     
 
     env:
       PROJECT_KEY: "joern"
@@ -19,6 +28,7 @@ jobs:
       VERSION: "2.0.${{ github.run_number }}"
       JF_URL: https://solenglatest.jfrog.io
       BUILD_NAME: "solenglatest-hello-world-build" 
+      JFROG_CLI_LOG_LEVEL: DEBUG
 
     steps:
       - name: Checkout Code
