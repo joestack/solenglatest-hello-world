@@ -59,7 +59,7 @@ jobs:
             --project="${{ env.PROJECT_KEY }}"
           #
           #
-          jf apptrust package-bind "joern" "generic" "app.bin" 
+          jf apptrust package-bind "joern" "generic" "app.bin" "${{ github.run_number }}"
 
 
           # FIXED: Swapped namespace to 'jf rt build-publish'
