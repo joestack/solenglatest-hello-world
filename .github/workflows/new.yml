@@ -57,7 +57,11 @@ jobs:
             --build-name="${{ env.BUILD_NAME }}" \
             --build-number="${{ github.run_number }}" \
             --project="${{ env.PROJECT_KEY }}"
-          
+          #
+          #
+          jf apptrust package-bind "joern" "generic" "app.bin" 
+
+
           # FIXED: Swapped namespace to 'jf rt build-publish'
           jf rt build-publish "${{ env.BUILD_NAME }}" "${{ github.run_number }}" \
             --project="${{ env.PROJECT_KEY }}"
