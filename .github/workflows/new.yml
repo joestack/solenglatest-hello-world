@@ -49,6 +49,17 @@ jobs:
           echo "Generating CycloneDX SBOM..."
           echo '{"bomFormat": "CycloneDX", "specVersion": "1.6", "components": []}' > output/sbom.json
 
+      - name: Diagnose AppTrust access
+        run: |
+         echo "Whoami:"
+         jf rt curl -sS api/security/token/me | jq .
+
+         echo "App lookup:"
+         jf rt curl -sS -w "\nHTTP %{http_code}\n" -X GET \
+           "/apptrust/api/v1/applications/joern"
+
+
+
       # Step 2: Upload Application Binary to Artifactory & Publish Build Info
       - name: Publish Build to JFrog
         run: |
