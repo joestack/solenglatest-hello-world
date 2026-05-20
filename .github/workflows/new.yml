@@ -51,13 +51,22 @@ jobs:
 
       - name: Diagnose AppTrust access
         run: |
-         echo "Whoami:"
-         jf rt curl -sS api/security/token/me | jq .
-
-         echo "App lookup:"
-         jf rt curl -sS -w "\nHTTP %{http_code}\n" -X GET \
-           "/apptrust/api/v1/applications/joern"
-
+          # Pull the OIDC-exchanged access token out of the CLI's server config
+          TOKEN=$(jf c export setup-jfrog-cli-server | base64 -d | jq -r '.accessToken')
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "Couldn't extract token; dumping config keys for debugging:"
+            jf c export setup-jfrog-cli-server | base64 -d | jq 'keys'
+            exit 1
+          fi
+          echo "=== AppTrust app lookup (joern) ==="
+          curl -sS -w "\nHTTP %{http_code}\n" \
+            -H "Authorization: Bearer $TOKEN" \
+            "${JF_URL}/apptrust/api/v1/applications/joern"
+          echo
+          echo "=== AppTrust apps list (project=joern) ==="
+          curl -sS -w "\nHTTP %{http_code}\n" \
+            -H "Authorization: Bearer $TOKEN" \
+            "${JF_URL}/apptrust/api/v1/applications?project_key=joern"
 
 
       # Step 2: Upload Application Binary to Artifactory & Publish Build Info
