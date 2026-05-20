@@ -36,9 +36,11 @@ jobs:
 
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v4
-        with:
-            oidc-provider-name: joern-github 
-            version: 2.91.0
+        env:
+          JF_ACCESS_TOKEN: ${{ secrets.JF_TOKEN }}
+        # with:
+        #     oidc-provider-name: joern-github 
+        #     version: 2.91.0
 
       # Step 1: Build application and generate the physical CycloneDX file
       - name: Build & Generate CycloneDX SBOM
